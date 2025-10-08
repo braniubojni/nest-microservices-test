@@ -148,12 +148,6 @@ The docs describe routes for data import, product search, log querying, and repo
 | `npm run test:e2e:service-a` | Execute Service A E2E suite (Jest).               |
 | `npm run test:e2e:service-b` | Execute Service B E2E suite (Jest).               |
 
-## 🧭 Next Ideas
-
-- Harden Redis reconnection strategy with health probes.
-- Introduce CQRS/event streaming for cross-service commands.
-- Explore Go/gRPC implementation for the reporting API (original bonus idea).
-
 ---
 
 Crafted with NestJS, Redis Stack, MongoDB, and a pinch of PDF artistry. Enjoy exploring! ✨
