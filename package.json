@@ -23,7 +23,6 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/service-a/test/jest-e2e.json",
     "test:e2e:service-a": "jest NODE_ENV=development --config ./apps/service-a/test/jest-e2e.json",
     "test:e2e:service-b": "jest NODE_ENV=development --config ./apps/service-b/test/jest-e2e.json",
     "test:e2e:all": "npm run test:e2e:service-a && npm run test:e2e:service-b",

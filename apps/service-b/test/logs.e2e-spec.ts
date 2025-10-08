@@ -62,7 +62,7 @@ describe('Logs (e2e)', () => {
       .query({ service: 'service-a' })
       .expect(200);
 
-    expect(response.body).toHaveProperty('totalLogs');
+    expect(response.body).toHaveProperty('topSlowEndpoints');
     expect(response.body).toHaveProperty('overview');
   });
 
