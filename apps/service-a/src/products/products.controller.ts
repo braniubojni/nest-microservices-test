@@ -5,17 +5,17 @@ import { SearchProductsDto } from './dto/product.dto';
 import { TrackApi } from '@app/shared/redis-time-series/decorators/track-api.decorator';
 
 @ApiTags('products')
-@Controller('products')
 @TrackApi()
+@Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Get('search')
   @ApiOperation({ summary: 'Search products with filters and pagination' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Products retrieved successfully',
   })
+  @Get('search')
   async search(@Query() searchDto: SearchProductsDto) {
     return this.productsService.search(searchDto);
   }

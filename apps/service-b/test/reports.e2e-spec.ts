@@ -1,12 +1,32 @@
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ServiceBModule } from '../src/service-b.module';
 
 describe('Reports (e2e)', () => {
-  const serviceBUrl = 'http://localhost:5001';
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [ServiceBModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
+    app.enableCors();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
 
   it('should generate PDF report', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/reports/pdf')
       .query({ service: 'service-a', period: '1h' })
       .expect(200);
@@ -29,7 +49,7 @@ describe('Reports (e2e)', () => {
   });
 
   it('should preview report data', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/reports/preview')
       .query({ service: 'service-a', period: '1h' })
       .expect(200);

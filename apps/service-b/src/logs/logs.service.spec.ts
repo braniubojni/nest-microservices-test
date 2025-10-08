@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { LogsService } from './logs.service';
-import { Log } from '@app/shared/schemas/log.schemas';
+import { Log } from '@app/shared/schemas/log.schema';
 
 type LogModelMock = jest.Mock & {
   find: jest.Mock;

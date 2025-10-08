@@ -28,7 +28,12 @@ export class Log extends Document {
   metadata?: Record<string, any>;
 
   @Prop({ index: true })
-  type: string; // 'request', 'error', 'success'
+  @Prop({
+    enum: ['request', 'server_error', 'client_error', 'success'],
+    required: true,
+    index: true,
+  })
+  type: string; // 'request', 'server_error', 'client_error', 'success'
 
   @Prop()
   errorMessage?: string;

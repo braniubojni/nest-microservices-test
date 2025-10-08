@@ -1,21 +1,23 @@
-import request from 'supertest';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import fs from 'fs';
 import path from 'path';
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { SharedModule } from '../../../libs/shared/src/shared.module';
-import { DataImportModule } from '../src/data-import/data-import.module';
-import { stat } from 'fs/promises';
+import request from 'supertest';
+import { ServiceAModule } from '../src/service-a.module';
 
 describe('DataImport (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [DataImportModule, SharedModule],
+      imports: [ServiceAModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
+    app.enableCors();
     await app.init();
   });
 

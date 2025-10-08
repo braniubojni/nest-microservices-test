@@ -21,10 +21,8 @@ async function bootstrap() {
   app.enableCors();
 
   const config = new DocumentBuilder()
-    .setTitle('Service A - Data Management API')
-    .setDescription(
-      'Microservice for fetching, storing, and managing product data',
-    )
+    .setTitle('Service B - Analytics and Reporting API')
+    .setDescription('Microservice for analytics and reporting on product data')
     .setVersion('1.0')
     .addTag('products')
     .addTag('data-import')

@@ -1,5 +1,5 @@
 import { ApiEvent } from '@app/shared/redis-time-series/types';
-import { Log } from '@app/shared/schemas/log.schemas';
+import { Log } from '@app/shared/schemas/log.schema';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FlattenMaps, Model } from 'mongoose';
@@ -252,11 +252,12 @@ export class LogsService implements OnModuleInit {
 
   /**
    * Determine log type based on event
+   * Returns 'server_error' for 5xx, 'client_error' for 4xx, 'success' for 2xx, and 'request' otherwise.
    */
   private determineLogType(event: ApiEvent): string {
     if (event.statusCode) {
-      if (event.statusCode >= 500) return 'error';
-      if (event.statusCode >= 400) return 'error';
+      if (event.statusCode >= 500) return 'server_error';
+      if (event.statusCode >= 400) return 'client_error';
       if (event.statusCode >= 200 && event.statusCode < 300) return 'success';
     }
     return 'request';

@@ -1,25 +1,30 @@
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { ServiceBModule } from '../src/service-b.module';
 
 describe('Logs (e2e)', () => {
-  const serviceAUrl = `http://localhost:${process.env.SERVICE_A_PORT || 3000}`;
-  const serviceBUrl = `http://localhost:${process.env.SERVICE_B_PORT || 5001}`;
+  let app: INestApplication;
 
   beforeAll(async () => {
-    // Trigger some API calls in service A to generate logs
-    await request(serviceAUrl)
-      .get('/products/search')
-      .query({ page: 1, limit: 5 });
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [ServiceBModule],
+    }).compile();
 
-    await request(serviceAUrl)
-      .post('/data-import/fetch-and-save')
-      .query({ format: 'json', limit: 2 });
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
+    app.enableCors();
+    await app.init();
+  });
 
-    // Wait a bit for logs to be stored
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  afterAll(async () => {
+    await app.close();
   });
 
   it('should query logs with pagination', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/logs')
       .query({ page: 1, limit: 10 })
       .expect(200);
@@ -30,7 +35,7 @@ describe('Logs (e2e)', () => {
   });
 
   it('should query logs by service', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/logs')
       .query({ service: 'service-a', page: 1, limit: 10 })
       .expect(200);
@@ -41,7 +46,7 @@ describe('Logs (e2e)', () => {
   });
 
   it('should query logs by type', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/logs')
       .query({ type: 'request', page: 1, limit: 10 })
       .expect(200);
@@ -52,7 +57,7 @@ describe('Logs (e2e)', () => {
   });
 
   it('should get log statistics', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/logs/statistics')
       .query({ service: 'service-a' })
       .expect(200);
@@ -62,7 +67,7 @@ describe('Logs (e2e)', () => {
   });
 
   it('should get count by type', async () => {
-    const response = await request(serviceBUrl)
+    const response = await request(app.getHttpServer())
       .get('/logs/count-by-type')
       .query({ service: 'service-a' })
       .expect(200);

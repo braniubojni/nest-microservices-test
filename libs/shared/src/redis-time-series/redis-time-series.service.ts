@@ -178,7 +178,10 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
       this.logger.log(`Subscribed to channel: ${channel}`);
     }
 
-    this.eventHandlers.get(channel)!.push(handler);
+    const handlers = this.eventHandlers.get(channel);
+    if (handlers) {
+      handlers.push(handler);
+    }
   }
 
   /**
