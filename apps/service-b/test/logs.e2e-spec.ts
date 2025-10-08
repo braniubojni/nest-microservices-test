@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { ServiceBModule } from '../src/service-b.module';
 import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
+import { sleep } from '@app/shared/common/utils';
 
 describe('Logs (e2e)', () => {
   let app: INestApplication;
@@ -23,7 +24,7 @@ describe('Logs (e2e)', () => {
   });
 
   afterAll(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await sleep(100);
     await app.close();
   });
 

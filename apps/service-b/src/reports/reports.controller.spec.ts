@@ -4,19 +4,31 @@ import { StreamableFile } from '@nestjs/common';
 import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
 import { ReportQueryDto } from './dto/report-query.dto';
+import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
 
 type ReportsServiceMock = {
   generatePdfReport: jest.Mock;
+};
+
+type RedisTimeSeriesServiceMock = {
+  publishApiEvent: jest.Mock;
+  subscribe: jest.Mock;
 };
 
 describe('ReportsController', () => {
   let controller: ReportsController;
   let service: ReportsServiceMock;
   let mockResponse: Partial<Response>;
+  let redisTimeSeriesService: RedisTimeSeriesServiceMock;
 
   beforeEach(async () => {
     service = {
       generatePdfReport: jest.fn(),
+    };
+
+    redisTimeSeriesService = {
+      publishApiEvent: jest.fn(),
+      subscribe: jest.fn(),
     };
 
     mockResponse = {
@@ -29,6 +41,10 @@ describe('ReportsController', () => {
         {
           provide: ReportsService,
           useValue: service,
+        },
+        {
+          provide: RedisTimeSeriesService,
+          useValue: redisTimeSeriesService,
         },
       ],
     }).compile();

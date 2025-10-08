@@ -1,98 +1,159 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<div align="center">
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Service A ↔ Service B — Observability Playground
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Two NestJS microservices wired together with MongoDB, Redis Stack, and a shared telemetry layer to showcase resilient data ingestion, search, and reporting.
 
-## Description
+</div>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ✨ What You Get
 
-## Project setup
+- **Service A** ingests product data (via API fetch or file upload), persists to MongoDB with rich indexing, and exposes search APIs.
+- **Service B** listens to every API interaction through Redis TimeSeries pub/sub, stores structured logs, and exports PDF analytics with embedded charts.
+- **Shared Library** centralises configuration, database connections, Redis TimeSeries clients, decorators, and schemas for both services.
+- **Docker Compose** brings up MongoDB, Redis Stack (with RedisInsight UI), and both services with a single command.
 
-```bash
-$ npm install
+> Bonus challenges noted in the brief (e.g. Go/gRPC report service) are intentionally skipped.
+
+## 🏗️ System Topology
+
+```text
+┌───────────┐      TrackApi decorator      ┌──────────┐
+│ Service A │ ───────────────────────────▶ │ Redis TS │
+│ (ingest)  │                              │  Pub/Sub │
+└───────────┘                              └────┬─────┘
+	│ Mongo writes & search queries             │ events
+	▼                                           ▼
+┌──────────┐                              ┌───────────┐
+│ MongoDB  │◀─ Share schemas & indexes ─▶ │ Service B │
+└──────────┘                              │ (logs)    │
+                                          │ PDF/Charts│
+                                          └───────────┘
 ```
 
-## Compile and run the project
+### Key Components
+
+| Layer                         | Highlights                                                                                                                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `libs/shared`                 | Global `SharedModule` bootstrapping config, Mongo connections, Redis TimeSeries clients/interceptors, and Mongoose schemas.                                                                                  |
+| Service A (`apps/service-a`)  | `DataImportModule` handles remote fetch ➜ JSON/XLSX file generation ➜ bulk import. `ProductsModule` delivers indexed search with pagination. All controllers decorated with `@TrackApi()` to emit telemetry. |
+| Service B (`apps/service-b`)  | `LogsService` subscribes to Redis pub/sub, stores enriched logs in Mongo, and powers reporting endpoints. `ReportsService` aggregates Redis + Mongo data into chart-rich PDFs.                               |
+| Docker (`docker-compose.yml`) | MongoDB, Redis Stack (incl. RedisInsight), Service A & B with shared volumes for `/data` and `/reports`.                                                                                                     |
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+- Node.js ≥ 20
+- npm ≥ 10
+- Docker & Docker Compose
+
+### 2. Install Dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Environment Files
+
+Generate the default `.env.*` files (development, production, test) using the provided helper:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+./setup.sh
 ```
 
-## Deployment
+`SharedModule` reads `NODE_ENV` to load `.env.${NODE_ENV}`. For local dev, set `NODE_ENV=development`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 4. Run the Stack with Docker
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker-compose up --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Services will be available by default at:
 
-## Resources
+- Service A API: http://localhost:3000
+- Service B API: http://localhost:3001
+- RedisInsight UI: http://localhost:5540
 
-Check out a few resources that may come in handy when working with NestJS:
+### 5. Local Development (optional)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npm run start:dev:service-a
+npm run start:dev:service-b
+```
 
-## Support
+> Ensure MongoDB & Redis are reachable (via Docker or local installs). The shared module expects them at the hosts defined in `.env.development`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 6. Tests
 
-## Stay in touch
+```bash
+npm test
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Unit tests cover controllers/services across both apps and the Redis TimeSeries utility layer. Jest configuration lives in `package.json`.
 
-## License
+## 📚 Swagger API Docs
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Each service exposes Swagger UI once running:
+
+- Service A: http://localhost:3000/api
+- Service B: http://localhost:3001/api
+
+The docs describe routes for data import, product search, log querying, and report generation with request/response schemas.
+
+## 🧩 Feature Highlights
+
+### Service A
+
+- **Programmatic data fetch** from DummyJSON (`DataImportService.fetchAndSaveData`) with JSON/XLSX outputs stored under `/data` (shared volume).
+- **Robust upload pipeline** accepting JSON/XLS/XLSX/CSV, using streaming parsers, upserts, and summarised import stats.
+- **Optimised search endpoints** with compound/text indexes (`ProductSchema`) and paginated responses.
+- **Telemetry decorator** ensures every controller action publishes an API event to Redis TimeSeries.
+
+### Service B
+
+- **Real-time log ingestion** via `RedisTimeSeriesService.subscribe('all')`, normalising events and persisting in Mongo with query-friendly indexes.
+- **Flexible querying APIs** (`LogsController`) with rich filters (service, type, duration/status ranges, date windows) and pagination metadata.
+- **Analytics reports** combining Redis metrics and Mongo aggregates into PDF exports with charts (Chart.js via `chartjs-node-canvas`) and detailed summaries.
+
+### Shared Library
+
+- Environment-driven configuration with Nest ConfigModule.
+- Mongo connection factory + reusable schemas for products/logs.
+- Redis TimeSeries service encapsulating TS.CREATE/ADD/RANGE commands, pub/sub wiring, and `@TrackApi` interceptor.
+
+## 📂 Data & Reports
+
+- `data/` — fetched files and upload staging area (mounted into Service A container).
+- `reports/` — generated PDFs from Service B (mounted into Service B container).
+- Both folders are git-ignored but mounted via Docker for persistence during local testing.
+
+## 🧪 Manual QA Checklist
+
+1. `POST /data-import/fetch-and-save?format=json&limit=50`
+2. `POST /data-import/upload-and-import` with sample JSON/XLSX/CSV file
+3. `GET /products/search?search=laptop&page=1&limit=20`
+4. Monitor RedisInsight (`api:events:*` channels) to confirm real-time events
+5. `GET /logs` endpoints to filter by service/type/time window
+6. `GET /reports/pdf` to download a charted PDF export
+
+## 🛠️ Handy Scripts
+
+| Command                      | Description                                       |
+| ---------------------------- | ------------------------------------------------- |
+| `npm run docker:up`          | Start MongoDB + Redis Stack (used by `npm test`). |
+| `npm run docker:down`        | Tear down containers.                             |
+| `npm run start:dev:all`      | Run both services with hot reload.                |
+| `npm run test:e2e:service-a` | Execute Service A E2E suite (Jest).               |
+| `npm run test:e2e:service-b` | Execute Service B E2E suite (Jest).               |
+
+## 🧭 Next Ideas
+
+- Harden Redis reconnection strategy with health probes.
+- Introduce CQRS/event streaming for cross-service commands.
+- Explore Go/gRPC implementation for the reporting API (original bonus idea).
+
+---
+
+Crafted with NestJS, Redis Stack, MongoDB, and a pinch of PDF artistry. Enjoy exploring! ✨

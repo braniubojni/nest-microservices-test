@@ -27,7 +27,5 @@ import { RedisTimeSeriesModule } from './redis-time-series/redis-time-series.mod
       inject: [ConfigService],
     }),
   ],
-  providers: [],
-  exports: [],
 })
 export class SharedModule {}

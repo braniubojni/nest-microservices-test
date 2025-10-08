@@ -2,20 +2,32 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LogsController } from './logs.controller';
 import { LogsService } from './logs.service';
 import { QueryLogsDto } from './dto/query-logs.dto';
+import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
 
 type LogsServiceMock = {
   queryLogs: jest.Mock;
   getStatistics: jest.Mock;
 };
 
+type RedisTimeSeriesServiceMock = {
+  publishApiEvent: jest.Mock;
+  subscribe: jest.Mock;
+};
+
 describe('LogsController', () => {
   let controller: LogsController;
   let service: LogsServiceMock;
+  let redisTimeSeriesService: RedisTimeSeriesServiceMock;
 
   beforeEach(async () => {
     service = {
       queryLogs: jest.fn(),
       getStatistics: jest.fn(),
+    };
+
+    redisTimeSeriesService = {
+      publishApiEvent: jest.fn(),
+      subscribe: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -24,6 +36,10 @@ describe('LogsController', () => {
         {
           provide: LogsService,
           useValue: service,
+        },
+        {
+          provide: RedisTimeSeriesService,
+          useValue: redisTimeSeriesService,
         },
       ],
     }).compile();

@@ -104,6 +104,8 @@ describe('RedisTimeSeriesService', () => {
         'ts:api:requests',
         'RETENTION',
         '604800000',
+        'DUPLICATE_POLICY',
+        'LAST',
         'LABELS',
         'type',
         'requests',
@@ -252,11 +254,6 @@ describe('RedisTimeSeriesService', () => {
         'ts:api:requests',
         1609459200000,
         1609459320000,
-        'AGGREGATION',
-        'sum',
-        60000,
-        'FILTER',
-        'service=test-service',
       );
       expect(result).toEqual(mockData);
     });
@@ -274,9 +271,6 @@ describe('RedisTimeSeriesService', () => {
         'ts:api:requests',
         expect.any(Number),
         expect.any(Number),
-        'AGGREGATION',
-        'sum',
-        60000,
       );
       expect(result).toEqual(mockData);
     });

@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { LogsService } from './logs.service';
 import { Log } from '@app/shared/schemas/log.schema';
+import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
+import { Logger } from '@nestjs/common';
 
 type LogModelMock = jest.Mock & {
   find: jest.Mock;
@@ -36,6 +38,11 @@ describe('LogsService', () => {
   let service: LogsService;
   let logModelMock: LogModelMock;
   let saveMock: jest.Mock;
+  let redisTimeSeriesServiceMock: {
+    subscribe: jest.Mock;
+    publishApiEvent: jest.Mock;
+  };
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     saveMock = jest.fn();
@@ -50,6 +57,11 @@ describe('LogsService', () => {
     logModelMock.aggregate = jest.fn();
     logModelMock.deleteMany = jest.fn();
 
+    redisTimeSeriesServiceMock = {
+      subscribe: jest.fn(),
+      publishApiEvent: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LogsService,
@@ -57,10 +69,21 @@ describe('LogsService', () => {
           provide: getModelToken(Log.name),
           useValue: logModelMock,
         },
+        {
+          provide: RedisTimeSeriesService,
+          useValue: redisTimeSeriesServiceMock,
+        },
       ],
     }).compile();
 
     service = module.get<LogsService>(LogsService);
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    loggerErrorSpy?.mockRestore();
   });
 
   it('should store a log with derived type and return the saved entity', async () => {
@@ -118,7 +141,7 @@ describe('LogsService', () => {
     );
 
     const logPayload = logModelMock.mock.calls[0][0];
-    expect(logPayload.type).toBe('error');
+    expect(logPayload.type).toBe('server_error');
     expect(logPayload.errorMessage).toBe('boom');
   });
 
