@@ -1,0 +1,93 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservices-network
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis
+    restart: always
+    ports:
+      - '6379:6379'
+      - '8001:8001'
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - '5540:5540'
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  microservices-network:
+    driver: bridge
+
+  # service-a:
+  #   build:
+  #     context: ./service-a
+  #     dockerfile: Dockerfile
+  #   container_name: service-a
+  #   restart: always
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3000
+  #     MONGO_LOGIN: admin
+  #     MONGO_PASSWORD: admin123
+  #     MONGO_HOST: mongodb
+  #     MONGO_PORT: 27017
+  #     MONGO_AUTHDATABASE: admin
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #   volumes:
+  #     - ./service-a/data:/app/data
+  #   networks:
+  #     - microservices-network
+
+  # service-b:
+  #   build:
+  #     context: ./service-b
+  #     dockerfile: Dockerfile
+  #   container_name: service-b
+  #   restart: always
+  #   ports:
+  #     - '3001:3001'
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3001
+  #     MONGO_LOGIN: admin
+  #     MONGO_PASSWORD: admin123
+  #     MONGO_HOST: mongodb
+  #     MONGO_PORT: 27017
+  #     MONGO_AUTHDATABASE: admin
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #     - service-a
+  #   volumes:
+  #     - ./service-b/reports:/app/reports
+  #   networks:
+  #     - microservices-network
