@@ -8,6 +8,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { TrackApi } from '@app/shared/redis-time-series/decorators/track-api.decorator';
 import { type Response } from 'express';
 import { ReportQueryDto } from './dto/report-query.dto';
 import { ReportsService } from './reports.service';
@@ -17,6 +18,7 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  @TrackApi()
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate PDF report of API usage' })
@@ -36,6 +38,7 @@ export class ReportsController {
     return new StreamableFile(pdfStream);
   }
 
+  @TrackApi()
   @Get('preview')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Preview report data without generating PDF' })

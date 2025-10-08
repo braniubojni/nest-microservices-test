@@ -2,12 +2,14 @@ import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { QueryLogsDto } from './dto/query-logs.dto';
 import { LogsService } from './logs.service';
+import { TrackApi } from '@app/shared/redis-time-series/decorators/track-api.decorator';
 
 @ApiTags('logs')
 @Controller('logs')
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
+  @TrackApi()
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Query logs with filters and pagination' })
@@ -15,6 +17,7 @@ export class LogsController {
     return this.logsService.queryLogs(queryDto);
   }
 
+  @TrackApi()
   @Get('statistics')
   @ApiOperation({ summary: 'Get log statistics' })
   @HttpCode(HttpStatus.OK)
@@ -29,6 +32,7 @@ export class LogsController {
     return this.logsService.getStatistics(service, from, to);
   }
 
+  @TrackApi()
   @Get('count-by-type')
   async getCountByType(@Query('service') service?: string) {
     const stats = await this.logsService.getStatistics(service);

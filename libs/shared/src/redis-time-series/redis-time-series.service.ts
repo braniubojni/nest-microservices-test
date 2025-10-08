@@ -51,7 +51,7 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.redisClient.on('error', (err) => {
-      this.logger.error(`Redis Client Error: ${err.message}`);
+      this.logger.debug(`Redis Client Error: ${err.message}`);
     });
 
     this.redisClient.on('connect', () => {
@@ -67,7 +67,7 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
           handlers.forEach((handler) => handler(event));
         }
       } catch (error) {
-        this.logger.error(`Error processing message: ${error.message}`);
+        this.logger.debug(`Error processing message: ${error.message}`);
       }
     });
 
@@ -94,6 +94,8 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
             key,
             'RETENTION',
             '604800000',
+            'DUPLICATE_POLICY',
+            'LAST',
             'LABELS',
             'type',
             key.split(':')[2],
@@ -158,7 +160,7 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
       // Also publish to a general channel
       await this.pubClient.publish('api:events:all', JSON.stringify(event));
     } catch (error) {
-      this.logger.error(`Failed to publish API event: ${error.message}`);
+      this.logger.debug(`Failed to publish API event: ${error.message}`);
     }
   }
 
@@ -206,16 +208,36 @@ export class RedisTimeSeriesService implements OnModuleInit, OnModuleDestroy {
         'ts:api:requests',
         from,
         to,
-        'AGGREGATION',
-        'sum',
-        60000, // 1 minute buckets
-        ...(filter ? ['FILTER', filter] : []),
       );
 
       return result;
     } catch (error) {
       this.logger.error(`Failed to get request count: ${error.message}`);
       return [];
+    }
+  }
+
+  /**
+   * @description Cleanup old data (if needed)
+   */
+  async cleanup() {
+    try {
+      const keys = ['ts:api:requests', 'ts:api:errors', 'ts:api:duration'];
+
+      for (const key of keys) {
+        await this.redisClient.call(
+          'TS.CREATERULE',
+          key,
+          'temp:cleanup',
+          'AGGREGATION',
+          'sum',
+          60000,
+        );
+        await this.redisClient.call('DEL', 'temp:cleanup');
+        this.logger.log(`Cleaned up time series: ${key}`);
+      }
+    } catch (error) {
+      // this.logger.error(`Failed to cleanup time series: ${error.message}`);
     }
   }
 

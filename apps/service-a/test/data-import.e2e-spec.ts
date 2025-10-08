@@ -4,9 +4,11 @@ import fs from 'fs';
 import path from 'path';
 import request from 'supertest';
 import { ServiceAModule } from '../src/service-a.module';
+import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
 
 describe('DataImport (e2e)', () => {
   let app: INestApplication;
+  let redisService: RedisTimeSeriesService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -18,6 +20,7 @@ describe('DataImport (e2e)', () => {
       new ValidationPipe({ transform: true, whitelist: true }),
     );
     app.enableCors();
+    redisService = moduleFixture.get(RedisTimeSeriesService);
     await app.init();
   });
 
@@ -25,7 +28,21 @@ describe('DataImport (e2e)', () => {
     await app.close();
   });
 
+  afterEach(async () => {
+    await redisService.cleanup();
+  });
+
+  async function getTotalRequests(service: string): Promise<number> {
+    const result = await redisService.getRequestCount(
+      service,
+      Date.now() - 1000,
+      Date.now() + 1000,
+    );
+    return result.length;
+  }
+
   it('should fetch data from API and save to JSON file', async () => {
+    const beforeCount = await getTotalRequests('service-a');
     const limit = 2;
     const response = await request(app.getHttpServer())
       .post('/data-import/fetch-and-save')
@@ -44,13 +61,17 @@ describe('DataImport (e2e)', () => {
       path.join(process.cwd(), response.body.filePath),
     );
     expect(fileExists).toBe(true);
+
+    const afterCount = await getTotalRequests('service-a');
+    expect(afterCount).toBeGreaterThan(beforeCount);
   });
 
   it('should fetch data from API and save to Excel file', async () => {
+    const beforeCount = await getTotalRequests('service-a');
     const limit = 2;
     const response = await request(app.getHttpServer())
       .post('/data-import/fetch-and-save')
-      .query({ format: 'xlsx', limit })
+      .query({ format: 'excel', limit })
       .expect(200);
 
     expect(response.body).toHaveProperty('message');
@@ -65,9 +86,13 @@ describe('DataImport (e2e)', () => {
       path.join(process.cwd(), response.body.filePath),
     );
     expect(fileExists).toBe(true);
+
+    const afterCount = await getTotalRequests('service-a');
+    expect(afterCount).toBe(beforeCount + 1);
   });
 
   it('should upload and import JSON file into MongoDB', async () => {
+    const beforeCount = await getTotalRequests('service-a');
     // First, create a sample JSON file
     const sampleData = [
       {
@@ -147,9 +172,13 @@ describe('DataImport (e2e)', () => {
 
     // Clean up
     fs.unlinkSync(filePath);
+
+    const afterCount = await getTotalRequests('service-a');
+    expect(afterCount).toBe(beforeCount + 1);
   });
 
   it('should upload and import Excel file into MongoDB', async () => {
+    const beforeCount = await getTotalRequests('service-a');
     const exampleFile = fs
       .readdirSync(path.join(process.cwd(), 'data'))
       .find((f) => f.startsWith('products-') && f.endsWith('.xlsx'));
@@ -165,15 +194,22 @@ describe('DataImport (e2e)', () => {
       expect(response.body.message).toContain(
         'File processed and imported successfully',
       );
+
+      const afterCount = await getTotalRequests('service-a');
+      expect(afterCount).toBe(beforeCount + 1);
     }
   });
 
   it('should list saved files', async () => {
+    const beforeCount = await getTotalRequests('service-a');
     const response = await request(app.getHttpServer())
       .get('/data-import/saved-files')
       .expect(200);
 
     expect(Array.isArray(response.body.files)).toBe(true);
     expect(response.body.count).toBeGreaterThan(0);
+
+    const afterCount = await getTotalRequests('service-a');
+    expect(afterCount).toBe(beforeCount + 1);
   });
 });

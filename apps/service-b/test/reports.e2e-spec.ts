@@ -4,9 +4,12 @@ import request from 'supertest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ServiceBModule } from '../src/service-b.module';
+import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
+import { sleep } from '@app/shared/common/utils';
 
 describe('Reports (e2e)', () => {
   let app: INestApplication;
+  let redisService: RedisTimeSeriesService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -18,14 +21,26 @@ describe('Reports (e2e)', () => {
       new ValidationPipe({ transform: true, whitelist: true }),
     );
     app.enableCors();
+    redisService = moduleFixture.get(RedisTimeSeriesService);
     await app.init();
   });
 
   afterAll(async () => {
+    await sleep(100);
     await app.close();
   });
 
+  async function getTotalRequests(service: string): Promise<number> {
+    const result = await redisService.getRequestCount(
+      service,
+      Date.now() - 1000,
+      Date.now() + 1000,
+    );
+    return result.length;
+  }
+
   it('should generate PDF report', async () => {
+    const beforeCount = await getTotalRequests('service-b');
     const response = await request(app.getHttpServer())
       .get('/reports/pdf')
       .query({ service: 'service-a', period: '1h' })
@@ -46,9 +61,13 @@ describe('Reports (e2e)', () => {
 
     // Clean up
     fs.unlinkSync(filePath);
+
+    const afterCount = await getTotalRequests('service-b');
+    expect(afterCount).toBeGreaterThan(beforeCount);
   });
 
   it('should preview report data', async () => {
+    const beforeCount = await getTotalRequests('service-b');
     const response = await request(app.getHttpServer())
       .get('/reports/preview')
       .query({ service: 'service-a', period: '1h' })
@@ -56,5 +75,8 @@ describe('Reports (e2e)', () => {
 
     expect(response.body).toHaveProperty('message');
     expect(response.body).toHaveProperty('query');
+
+    const afterCount = await getTotalRequests('service-b');
+    expect(afterCount).toBeGreaterThan(beforeCount);
   });
 });

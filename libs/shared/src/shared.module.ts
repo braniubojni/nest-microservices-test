@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { getMongoConfig } from '../common/configs';
+import { getMongoConfig } from './common/configs';
 import { RedisTimeSeriesModule } from './redis-time-series/redis-time-series.module';
 
 @Global()
