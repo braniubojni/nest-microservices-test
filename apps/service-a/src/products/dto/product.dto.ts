@@ -57,42 +57,42 @@ export class CreateProductDto {
 }
 
 export class SearchProductsDto {
-  @ApiPropertyOptional({ example: 'phone' })
+  @ApiPropertyOptional({})
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ example: 'smartphones' })
+  @ApiPropertyOptional({})
   @IsOptional()
   @IsString()
   category?: string;
 
-  @ApiPropertyOptional({ example: 'Apple' })
+  @ApiPropertyOptional({})
   @IsOptional()
   @IsString()
   brand?: string;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiPropertyOptional({})
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   minPrice?: number;
 
-  @ApiPropertyOptional({ example: 1000 })
+  @ApiPropertyOptional({})
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   maxPrice?: number;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({})
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ example: 10 })
+  @ApiPropertyOptional({})
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
