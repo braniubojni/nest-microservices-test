@@ -81,6 +81,8 @@ Services will be available by default at:
 ```bash
 npm run start:dev:service-a
 npm run start:dev:service-b
+# or both together
+npm run start:dev:all
 ```
 
 > Ensure MongoDB & Redis are reachable (via Docker or local installs). The shared module expects them at the hosts defined in `.env.development`.
@@ -88,7 +90,10 @@ npm run start:dev:service-b
 ### 6. Tests
 
 ```bash
-npm test
+# For unit tests
+npm run test
+# For E2E tests
+npm run test:e2e:all
 ```
 
 Unit tests cover controllers/services across both apps and the Redis TimeSeries utility layer. Jest configuration lives in `package.json`.
