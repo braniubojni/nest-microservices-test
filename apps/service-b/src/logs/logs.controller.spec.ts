@@ -3,6 +3,7 @@ import { LogsController } from './logs.controller';
 import { LogsService } from './logs.service';
 import { QueryLogsDto } from './dto/query-logs.dto';
 import { RedisTimeSeriesService } from '@app/shared/redis-time-series/redis-time-series.service';
+import { QueryStatisticsDto } from './dto/query-statistics.dto';
 
 type LogsServiceMock = {
   queryLogs: jest.Mock;
@@ -107,11 +108,11 @@ describe('LogsController', () => {
 
       service.getStatistics.mockResolvedValue(mockStats);
 
-      const result = await controller.getStatistics(
-        serviceParam,
-        fromDate,
-        toDate,
-      );
+      const getStatisticsDto = new QueryStatisticsDto();
+      getStatisticsDto.service = serviceParam;
+      getStatisticsDto.fromDate = new Date(fromDate);
+      getStatisticsDto.toDate = new Date(toDate);
+      const result = await controller.getStatistics(getStatisticsDto);
 
       expect(service.getStatistics).toHaveBeenCalledWith(
         serviceParam,
@@ -132,7 +133,11 @@ describe('LogsController', () => {
 
       service.getStatistics.mockResolvedValue(mockStats);
 
-      const result = await controller.getStatistics();
+      const getStatisticsDto = new QueryStatisticsDto();
+      getStatisticsDto.service = undefined;
+      getStatisticsDto.fromDate = undefined;
+      getStatisticsDto.toDate = undefined;
+      const result = await controller.getStatistics(getStatisticsDto);
 
       expect(service.getStatistics).toHaveBeenCalledWith(
         undefined,
@@ -147,7 +152,11 @@ describe('LogsController', () => {
 
       service.getStatistics.mockRejectedValue(error);
 
-      await expect(controller.getStatistics('service-a')).rejects.toThrow(
+      const getStatisticsDto = new QueryStatisticsDto();
+      getStatisticsDto.service = 'service-a';
+      getStatisticsDto.fromDate = undefined;
+      getStatisticsDto.toDate = undefined;
+      await expect(controller.getStatistics(getStatisticsDto)).rejects.toThrow(
         'Stats calculation failed',
       );
       expect(service.getStatistics).toHaveBeenCalledWith(

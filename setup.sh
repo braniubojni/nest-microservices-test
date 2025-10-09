@@ -12,7 +12,6 @@ MONGO_PASSWORD=admin123
 MONGO_HOST=localhost
 MONGO_PORT=27017
 MONGO_AUTHDATABASE=admin
-MONGO_DATABASE=serviceA
 EXTERNAL_API_URL="https://dummyjson.com/products"
 
 # Redis Configuration
@@ -33,7 +32,6 @@ MONGO_PASSWORD=
 MONGO_HOST=
 MONGO_PORT=
 MONGO_AUTHDATABASE=
-MONGO_DATABASE=
 EXTERNAL_API_URL=
 
 # Redis Configuration
@@ -54,7 +52,6 @@ MONGO_PASSWORD=admin123
 MONGO_HOST=localhost
 MONGO_PORT=27017
 MONGO_AUTHDATABASE=admin
-MONGO_DATABASE=serviceA
 EXTERNAL_API_URL="https://dummyjson.com/products"
 
 # Redis Configuration

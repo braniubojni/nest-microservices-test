@@ -24,8 +24,6 @@ async function bootstrap() {
     .setTitle('Service B - Analytics and Reporting API')
     .setDescription('Microservice for analytics and reporting on product data')
     .setVersion('1.0')
-    .addTag('products')
-    .addTag('data-import')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

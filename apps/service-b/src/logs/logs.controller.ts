@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { QueryLogsDto } from './dto/query-logs.dto';
 import { LogsService } from './logs.service';
 import { TrackApi } from '@app/shared/redis-time-series/decorators/track-api.decorator';
+import { QueryStatisticsDto } from './dto/query-statistics.dto';
 
 @ApiTags('logs')
 @Controller('logs')
@@ -22,9 +23,7 @@ export class LogsController {
   @ApiOperation({ summary: 'Get log statistics' })
   @HttpCode(HttpStatus.OK)
   async getStatistics(
-    @Query('service') service?: string,
-    @Query('fromDate') fromDate?: string,
-    @Query('toDate') toDate?: string,
+    @Query() { service, fromDate, toDate }: QueryStatisticsDto,
   ) {
     const from = fromDate ? new Date(fromDate) : undefined;
     const to = toDate ? new Date(toDate) : undefined;

@@ -159,6 +159,14 @@ export class LogsService implements OnModuleInit {
       filter.timestamp = {};
       if (fromDate) filter.timestamp.$gte = fromDate;
       if (toDate) filter.timestamp.$lte = toDate;
+    } else {
+      // Default to last hour if no dates provided
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      filter.timestamp = {
+        $gte: oneHourAgo,
+        $lte: now,
+      };
     }
 
     const stats = await this.logModel.aggregate([

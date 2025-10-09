@@ -46,7 +46,7 @@ export class ReportsService {
       ]);
 
     // Create PDF document
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
 
     // Add content to PDF
     await this.addPdfHeader(doc, service, from, to);
