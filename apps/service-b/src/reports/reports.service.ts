@@ -46,7 +46,11 @@ export class ReportsService {
       ]);
 
     // Create PDF document
-    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
+    const doc = new PDFDocument({
+      size: 'A4',
+      margin: 50,
+      bufferPages: true,
+    });
 
     // Add content to PDF
     await this.addPdfHeader(doc, service, from, to);
@@ -55,6 +59,8 @@ export class ReportsService {
     await this.addDurationChart(doc, durationData);
     await this.addErrorsChart(doc, errorsData);
     await this.addStatisticsSection(doc, logStats);
+
+    // Add footer to all pages
     await this.addFooter(doc);
 
     // Finalize PDF
@@ -284,19 +290,33 @@ export class ReportsService {
   }
 
   /**
-   * Add footer
+   * Add footer with page numbers to all pages
    */
   private async addFooter(doc: PDFKit.PDFDocument): Promise<void> {
-    const pageCount = doc.bufferedPageRange().count;
+    const pages = doc.bufferedPageRange();
 
-    for (let i = 0; i < pageCount; i++) {
-      doc.switchToPage(i + 1);
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+
+      // Save old bottom margin
+      const oldBottomMargin = doc.page.margins.bottom;
+
+      // Remove bottom margin to write into it
+      doc.page.margins.bottom = 0;
+
+      // Add page number centered in bottom margin
       doc
         .fontSize(9)
         .font('Helvetica')
-        .text(`Page ${i + 1} of ${pageCount}`, 50, doc.page.height - 50, {
-          align: 'center',
-        });
+        .text(
+          `Page ${i + 1} of ${pages.count}`,
+          0,
+          doc.page.height - oldBottomMargin / 2,
+          { align: 'center' },
+        );
+
+      // Restore bottom margin
+      doc.page.margins.bottom = oldBottomMargin;
     }
   }
 
