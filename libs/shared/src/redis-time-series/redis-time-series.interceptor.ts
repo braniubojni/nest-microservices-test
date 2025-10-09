@@ -2,6 +2,7 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
+  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { RedisTimeSeriesService } from './redis-time-series.service';
@@ -9,6 +10,7 @@ import { catchError, Observable, tap } from 'rxjs';
 
 @Injectable()
 export class RedisTimeSeriesInterceptor implements NestInterceptor {
+  logger = new Logger(RedisTimeSeriesInterceptor.name);
   constructor(
     private readonly redisTimeSeriesService: RedisTimeSeriesService,
   ) {}
@@ -20,6 +22,7 @@ export class RedisTimeSeriesInterceptor implements NestInterceptor {
     const startTime = Date.now();
     const { method, url, route } = request;
     const serviceName = process.env.SERVICE_NAME || 'unknown-service';
+    this.logger.debug({ serviceName });
 
     return next.handle().pipe(
       tap(() => {

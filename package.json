@@ -21,8 +21,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e:service-a": "jest --config SERVICE_NAME=service-a ./apps/service-a/test/jest-e2e.json",
-    "test:e2e:service-b": "jest --config SERVICE_NAME=service-b ./apps/service-b/test/jest-e2e.json",
+    "test:e2e:service-a": "jest --config ./apps/service-a/test/jest-e2e.json",
+    "test:e2e:service-b": "jest --config ./apps/service-b/test/jest-e2e.json",
     "pretest:e2e:all": "npm run docker:up",
     "test:e2e:all": "npm run test:e2e:service-a && npm run test:e2e:service-b",
     "posttest:e2e:all": "npm run docker:down"
