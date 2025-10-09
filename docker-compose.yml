@@ -45,6 +45,7 @@ services:
       - .env.development
     environment:
       NODE_ENV: production
+      SERVICE_NAME: service-a
       MONGO_HOST: mongodb
       REDIS_HOST: redis
     depends_on:
@@ -67,6 +68,7 @@ services:
       - .env.development
     environment:
       NODE_ENV: production
+      SERVICE_NAME: service-b
       MONGO_HOST: mongodb
       REDIS_HOST: redis
     depends_on:

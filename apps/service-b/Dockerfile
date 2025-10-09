@@ -30,9 +30,26 @@ RUN apk add --no-cache \
 	pango \
 	libpng \
 	libjpeg-turbo \
-	giflib
+	giflib \
+	fontconfig \
+	ttf-dejavu \
+	ttf-droid \
+	ttf-freefont \
+	ttf-liberation \
+	python3 \
+	make \
+	g++ \
+	cairo-dev \
+	pango-dev \
+	libpng-dev \
+	jpeg-dev \
+	giflib-dev \
+	pixman-dev
 
-COPY --from=build /app/node_modules ./node_modules
+COPY package*.json ./
+
+# Install only production dependencies and rebuild native modules
+RUN npm ci --only=production && npm rebuild canvas
 
 COPY --from=build /app/dist ./dist
 

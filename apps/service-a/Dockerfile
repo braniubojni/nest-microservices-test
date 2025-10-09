@@ -2,20 +2,9 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-RUN apk add --no-cache \
-	python3 \
-	make \
-	g++ \
-	cairo-dev \
-	pango-dev \
-	libpng-dev \
-	jpeg-dev \
-	giflib-dev \
-	pixman-dev
-
 COPY package*.json ./
 
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 COPY . .
 
@@ -25,14 +14,12 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-RUN apk add --no-cache \
-	cairo \
-	pango \
-	libpng \
-	libjpeg-turbo \
-	giflib
+COPY package*.json ./
 
-COPY --from=build /app/node_modules ./node_modules
+# Install production dependencies. 
+# Note: '--ignore-scripts' is used because service-a currently does not require any npm install scripts (e.g., native modules).
+# If you add dependencies that require install scripts, remove '--ignore-scripts' from the command below.
+RUN npm ci --only=production --ignore-scripts
 
 COPY --from=build /app/dist ./dist
 
