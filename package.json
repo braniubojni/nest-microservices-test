@@ -99,6 +99,10 @@
       "<rootDir>/apps/",
       "<rootDir>/libs/"
     ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/apps/service-a/test/",
+      "<rootDir>/apps/service-b/test/"
+    ],
     "moduleNameMapper": {
       "^@app/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
     }
