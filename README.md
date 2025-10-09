@@ -153,6 +153,10 @@ The docs describe routes for data import, product search, log querying, and repo
 | `npm run test:e2e:service-a` | Execute Service A E2E suite (Jest).               |
 | `npm run test:e2e:service-b` | Execute Service B E2E suite (Jest).               |
 
+## Video Of Usage
+
+https://github.com/user-attachments/assets/feb5f38e-3713-4c1a-9a7a-cf6cba2474a6
+
 ---
 
 Crafted with NestJS, Redis Stack, MongoDB, and a pinch of PDF artistry. Enjoy exploring! ✨
